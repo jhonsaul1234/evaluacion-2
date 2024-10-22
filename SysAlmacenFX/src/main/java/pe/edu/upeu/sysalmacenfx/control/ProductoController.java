@@ -1,6 +1,9 @@
 package pe.edu.upeu.sysalmacenfx.control;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
@@ -24,7 +27,11 @@ import pe.edu.upeu.sysalmacenfx.servicio.ProductoService;
 import pe.edu.upeu.sysalmacenfx.servicio.UnidadMedidaService;
 
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Component
 public class ProductoController {
@@ -106,6 +113,9 @@ public class ProductoController {
         });
         new ComboBoxAutoComplete<>(cbxUnidMedida);
 
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+
         // Crear instancia de la clase genérica TableViewHelper
         TableViewHelper<Producto> tableViewHelper = new TableViewHelper<>();
         LinkedHashMap<String, ColumnInfo> columns = new LinkedHashMap<>();
@@ -151,6 +161,120 @@ public class ProductoController {
         }
     }
 
+    public void limpiarError(){
+        txtNombreProducto.getStyleClass().remove("text-field-error");
+        txtPUnit.getStyleClass().remove("text-field-error");
+        txtPUnitOld.getStyleClass().remove("text-field-error");
+        txtUtilidad.getStyleClass().remove("text-field-error");
+        txtStock.getStyleClass().remove("text-field-error");
+        txtStockOld.getStyleClass().remove("text-field-error");
+        cbxMarca.getStyleClass().remove("text-field-error");
+        cbxCategoria.getStyleClass().remove("text-field-error");
+        cbxUnidMedida.getStyleClass().remove("text-field-error");
+    }
 
+    public void clearForm(){
+        txtNombreProducto.setText("");
+        txtPUnit.setText("");
+        txtPUnitOld.setText("");
+        txtUtilidad.setText("");
+        txtStock.setText("");
+        txtStockOld.setText("");
+        cbxMarca.getSelectionModel().select(null);
+        cbxCategoria.getSelectionModel().select(null);
+        cbxUnidMedida.getSelectionModel().select(null);
+        idProductoCE=0L;
+        limpiarError();
+    }
+
+    @FXML
+    public void cancelarAccion(){
+        clearForm();
+        limpiarError();
+    }
+
+    void validarCampos(List<ConstraintViolation<Producto>> violacionesOrdenadasPorPropiedad){
+// Crear un LinkedHashMap para ordenar las violaciones
+        LinkedHashMap<String, String> erroresOrdenados = new LinkedHashMap<>();
+// Mostrar el primer mensaje de error
+        for (ConstraintViolation<Producto> violacion : violacionesOrdenadasPorPropiedad) {
+            String campo = violacion.getPropertyPath().toString();
+            if(campo.equals("nombre")){
+                erroresOrdenados.put("nombre", violacion.getMessage());
+                txtNombreProducto.getStyleClass().add("text-field-error");
+            }else if (campo.equals("pu")) {
+                erroresOrdenados.put("pu", violacion.getMessage());
+                txtPUnit.getStyleClass().add("text-field-error");
+            }else if (campo.equals("puOld")) {
+                erroresOrdenados.put("puold", violacion.getMessage());
+                txtPUnitOld.getStyleClass().add("text-field-error");
+            }else if (campo.equals("utilidad")) {
+                erroresOrdenados.put("utilidad", violacion.getMessage());
+                txtUtilidad.getStyleClass().add("text-field-error");
+            }else if (campo.equals("stock")) {
+                erroresOrdenados.put("stock", violacion.getMessage());
+                txtStock.getStyleClass().add("text-field-error");
+            }else if (campo.equals("stockOld")) {
+                erroresOrdenados.put("stockold", violacion.getMessage());
+                txtStockOld.getStyleClass().add("text-field-error");
+            }else if (campo.equals("marca")) {
+                erroresOrdenados.put("marca", violacion.getMessage());
+                cbxMarca.getStyleClass().add("text-field-error");
+            }else if (campo.equals("categoria")) {
+                erroresOrdenados.put("categoria", violacion.getMessage());
+                cbxCategoria.getStyleClass().add("text-field-error");
+            }else if (campo.equals("unidadMedida")) {
+                erroresOrdenados.put("unidadmedida", violacion.getMessage());
+                cbxUnidMedida.getStyleClass().add("text-field-error");
+            }
+        }
+        // Mostrar el primer error en el orden deseado
+        Map.Entry<String, String> primerError = erroresOrdenados.entrySet().iterator().next();
+        lbnMsg.setText(primerError.getValue()); // Mostrar el mensaje del primer error
+        lbnMsg.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+    }
+
+    @FXML
+    public void validarFormulario() {
+        formulario = new Producto();
+        formulario.setNombre(txtNombreProducto.getText());
+        formulario.setPu(Double.parseDouble(txtPUnit.getText()==""?"0":txtPUnit.getText()));
+        formulario.setPuOld(Double.parseDouble(txtPUnitOld.getText()==""?"0":txtPUnitOld.getText()));
+        formulario.setUtilidad(Double.parseDouble(txtUtilidad.getText()==""?"0":txtUtilidad.getText()));
+        formulario.setStock(Double.parseDouble(txtStock.getText()==""?"0":txtStock.getText()));
+        formulario.setStockOld(Double.parseDouble(txtStockOld.getText()==""?"0":txtStockOld.getText()));
+        String idxM=cbxMarca.getSelectionModel().getSelectedItem()==null?"0":cbxMarca.getSelectionModel().getSelectedItem().getKey();
+        formulario.setMarca(ms.searchById(Long.parseLong(idxM)));
+        String idxC=cbxCategoria.getSelectionModel().getSelectedItem()==null?"0":cbxCategoria.getSelectionModel().getSelectedItem().getKey();
+        formulario.setCategoria(cs.searchById(Long.parseLong(idxC)));
+        String idxUM=cbxUnidMedida.getSelectionModel().getSelectedItem()==null?"0":cbxUnidMedida.getSelectionModel().getSelectedItem().getKey();
+        formulario.setUnidadMedida(ums.searchById(Long.parseLong(idxUM)));
+        Set<ConstraintViolation<Producto>> violaciones = validator.validate(formulario);
+// Si prefieres ordenarlo por el nombre de la propiedad que violó la restricción, podrías usar:
+        List<ConstraintViolation<Producto>> violacionesOrdenadasPorPropiedad = violaciones.stream()
+                .sorted((v1, v2) -> v1.getPropertyPath().toString().compareTo(v2.getPropertyPath().toString()))
+                .collect(Collectors.toList());
+        if (violacionesOrdenadasPorPropiedad.isEmpty()) {
+// Los datos son válidos
+            lbnMsg.setText("Formulario válido");
+            lbnMsg.setStyle("-fx-text-fill: green; -fx-font-size: 16px;");
+            limpiarError();
+            double with=stage.getWidth()/1.5;
+            double h=stage.getHeight()/2;
+            if(idProductoCE!=0L && idProductoCE>0L){
+                formulario.setIdProducto(idProductoCE);
+                ps.update(formulario);
+                Toast.showToast(stage, "Se actualizó correctamente!!", 2000, with, h);
+                clearForm();
+            }else{
+                ps.save(formulario);
+                Toast.showToast(stage, "Se guardo correctamente!!", 2000, with, h);
+                clearForm();
+            }
+            listar();
+        } else {
+            validarCampos(violacionesOrdenadasPorPropiedad);
+        }
+    }
 
 }
