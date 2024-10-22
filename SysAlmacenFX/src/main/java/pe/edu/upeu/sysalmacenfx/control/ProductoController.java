@@ -130,7 +130,7 @@ public class ProductoController {
 
         Consumer<Producto> updateAction = (Producto producto) -> {
             System.out.println("Actualizar: " + producto);
-            //editForm(producto);
+            editForm(producto);
         };
         Consumer<Producto> deleteAction = (Producto producto) -> {System.out.println("Actualizar: " + producto);
             ps.delete(producto.getIdProducto()); /*deletePerson(usuario);*/
@@ -154,7 +154,7 @@ public class ProductoController {
             tableView.getItems().addAll(listarProducto);
             // Agregar un listener al campo de texto txtFiltroDato para filtrar los productos
             txtFiltroDato.textProperty().addListener((observable, oldValue, newValue) -> {
-                //filtrarProductos(newValue);
+                filtrarProductos(newValue);
             });
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -275,6 +275,73 @@ public class ProductoController {
         } else {
             validarCampos(violacionesOrdenadasPorPropiedad);
         }
+    }
+
+    private void filtrarProductos(String filtro) {
+        if (filtro == null || filtro.isEmpty()) {
+// Si el filtro está vacío, volver a mostrar la lista completa
+            tableView.getItems().clear();
+            tableView.getItems().addAll(listarProducto);
+        } else {
+// Aplicar el filtro
+            String lowerCaseFilter = filtro.toLowerCase();
+            List<Producto> productosFiltrados = listarProducto.stream()
+                    .filter(producto -> {
+// Verificar si el filtro coincide con alguno de los campos
+                        if (producto.getNombre().toLowerCase().contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        if (String.valueOf(producto.getPu()).contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        if (String.valueOf(producto.getUtilidad()).contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        if (producto.getMarca().getNombre().toLowerCase().contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        if (producto.getCategoria().getNombre().toLowerCase().contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        return false; // Si no coincide con ningún campo
+                    })
+                    .collect(Collectors.toList());
+            // Actualizar los items del TableView con los productos filtrados
+            tableView.getItems().clear();
+            tableView.getItems().addAll(productosFiltrados);
+        }
+    }
+
+    public void editForm(Producto producto){
+        txtNombreProducto.setText(producto.getNombre());
+        txtPUnit.setText(producto.getPu().toString());
+        txtPUnitOld.setText(producto.getPuOld().toString());
+        txtUtilidad.setText(producto.getUtilidad().toString());
+        txtStock.setText(producto.getStock().toString());
+        txtStockOld.setText(producto.getStockOld().toString());
+// Seleccionar el ítem en cbxMarca según el ID de Marca
+        cbxMarca.getSelectionModel().select(
+                cbxMarca.getItems().stream()
+                        .filter(marca -> Long.parseLong(marca.getKey())==producto.getMarca().getIdMarca())
+                        .findFirst()
+                        .orElse(null)
+        );
+// Seleccionar el ítem en cbxCategoria según el ID de Categoria
+        cbxCategoria.getSelectionModel().select(
+                cbxCategoria.getItems().stream()
+                        .filter(categoria -> Long.parseLong(categoria.getKey())==producto.getCategoria().getIdCategoria())
+                        .findFirst()
+                        .orElse(null)
+        );
+// Seleccionar el ítem en cbxUnidMedida según el ID de Unidad de Medida
+        cbxUnidMedida.getSelectionModel().select(
+                cbxUnidMedida.getItems().stream()
+                        .filter(unidad -> Long.parseLong(unidad.getKey())==producto.getUnidadMedida().getIdUnidad())
+                        .findFirst()
+                        .orElse(null)
+        );
+        idProductoCE=producto.getIdProducto();
+        limpiarError();
     }
 
 }
