@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import pe.edu.upeu.sysalmacenfx.dto.MenuMenuItenTO;
+import pe.edu.upeu.sysalmacenfx.dto.SessionManager;
 import pe.edu.upeu.sysalmacenfx.servicio.MenuMenuItemDao;
 import pe.edu.upeu.sysalmacenfx.servicio.MenuMenuItenDaoI;
 import pe.edu.upeu.sysalmacenfx.utils.UtilsX;
@@ -37,9 +38,10 @@ public class GUIMainFX {
     private MenuBar menuBarFx;
     @FXML
     public void initialize() {
-        myresources = util.detectLanguage(userPrefs.get("IDIOMAX", "es"));
+        myresources = util.detectLanguage(userPrefs.get("IDIOMAX", "en"));
         mmiDao = new MenuMenuItemDao();
-        lista = mmiDao.listaAccesos("Root", myresources);
+        String perf= SessionManager.getInstance().getNombrePerfil();
+        lista = mmiDao.listaAccesos(perf, myresources);
         int[] mmi = contarMenuMunuItem(lista);
         Menu[] menu = new Menu[mmi[0]];
         MenuItem[] menuItem = new MenuItem[mmi[1]];
@@ -100,6 +102,7 @@ public class GUIMainFX {
 
     class MenuItemListener {
         public void handle(javafx.event.ActionEvent e) {
+
             if (((MenuItem) e.getSource()).getId().equals("mimiregproduct")) {
                 tabPaneFx.getTabs().clear();
                 FXMLLoader loader = new
@@ -116,6 +119,24 @@ public class GUIMainFX {
                     throw new RuntimeException(ex);
                 }
             }
+
+            if(((MenuItem) e.getSource()).getId().equals("mimiautcomp")){
+                tabPaneFx.getTabs().clear();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/main_prod_autocomp.fxml"));
+                loader.setControllerFactory(context::getBean);
+                Parent paneFromFXML;
+                try {
+                    paneFromFXML = loader.load(); // Cargar el contenido FXML
+                    ScrollPane dd= new ScrollPane(paneFromFXML);
+                    //mc.setContexto(ctx);
+                    Tab clienteTab = new Tab("Form Autocomplete",dd );
+                    tabPaneFx.getTabs().add(clienteTab);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+
             if (((MenuItem) e.getSource()).getId().equals("mimiselectall")) {
                 tabPaneFx.getTabs().clear();
             // Añade la lógica para "mimiselectall"
