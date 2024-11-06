@@ -46,7 +46,7 @@ public class GUIMainFX {
         Menu[] menu = new Menu[mmi[0]];
         MenuItem[] menuItem = new MenuItem[mmi[1]];
         menuBarFx = new MenuBar();
-        MenuItemListener d = new MenuItemListener();
+         MenuItemListener d = new MenuItemListener();
         SampleMenuListener m = new SampleMenuListener();
         String menuN = "";
         int menui = 0, menuitem = 0;

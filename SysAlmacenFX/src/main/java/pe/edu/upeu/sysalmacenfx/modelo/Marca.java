@@ -17,6 +17,10 @@ public class Marca {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_marca")
     private Long idMarca;
+
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
+
+    @Column(name = "precio", nullable = false) // Nuevo campo para el precio
+    private Double precio; // Tipo de dato para el precio
 }

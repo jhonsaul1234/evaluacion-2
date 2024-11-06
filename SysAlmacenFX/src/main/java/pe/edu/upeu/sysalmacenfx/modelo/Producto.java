@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "upeu_producto")  //Bonnier (1p)
 public class Producto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_producto")
@@ -59,4 +60,6 @@ public class Producto {
     @JoinColumn(name = "id_unidad", referencedColumnName = "id_unidad",
             nullable = false, foreignKey = @ForeignKey(name = "FK_UNIDADMEDIDA_PRODUCTO"))
     private UnidadMedida unidadMedida;
+
+
 }
